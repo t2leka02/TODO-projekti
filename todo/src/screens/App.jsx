@@ -1,104 +1,75 @@
-
-import '../App.css'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useUser } from '../context/useUser'
 import axios from 'axios'
-import Row from "../components/row";
-import { useUser } from '../context/useUser'; 
+import Row from '../components/Row.jsx'
 
 const url = "http://localhost:3001"
-
 function App() {
-  const [task, setTask] = useState('')
-  const [tasks, setTasks] = useState([])
-  
-  const { user, logout } = useUser() 
+ const [task, setTask] = useState('')
+ const [tasks, setTasks] = useState([])
+ const { user } = useUser()
 
-  useEffect(() => {
-    axios.get(url)
-    .then(response => {
-    setTasks(response.data)
-    })
-    .catch(error => {
-    alert(error.response.data ? error.response.data.error.message : error)
-    })
-  }, []) 
+   useEffect(() => { 
+    axios.get(url) 
+      .then(response => { 
+        setTasks(response.data) 
+      }) 
+      .catch(error => { 
+        alert(error.response.data ? error.response.data.message : error) 
+      }) 
+  }, [])
 
-  const addTask = () => {
-    if (!user) return alert('Must be logged in to add task.'); 
+ const addTask = () => {
+ const headers = {headers: {Authorization: user.token}}
+ const newTask = { description: task }
+ axios.post(url + "/create", {task: newTask},headers)
+ .then(response => {
+ setTasks([...tasks,response.data])
+ setTask('')
+ })
+ }
 
-    const headers = { 
-        'Content-Type': 'application/json',
-        'Authorization': user.token 
-    };
+const deleteTask = (deleted) => {
+ const headers = {headers: {Authorization: user.token}}
+ console.log(headers)
+ axios.delete(url + "/delete/" + deleted,headers)
+ .then(response => {
+ setTasks(tasks.filter(item => item.id !== deleted))
+ })
+}
 
-    const newTask = { description: task }
-    axios.post(url + "/create", {task: newTask}, { headers }) 
-    .then(response => {
-      setTasks([...tasks, response.data])
-      setTask('')
-    })
-    .catch(error => {
-      if (error.response && error.response.status === 401) {
-        alert('Unauthorized. Logging out.');
-        logout(); 
-      } else {
-        alert(error.response ? error.response.data.error.message : error)
-      }
-    })
-  }
-
-
-  const deleteTask = (deleted) => {
-    if (!user) return alert('Must be logged in to delete task.'); 
-
-    const headers = { 
-        'Authorization': user.token 
-    };
-
-    axios.delete(url + "/delete/" + deleted, { headers }) 
-    .then(response => {
-      setTasks(tasks.filter(item => item.id !== deleted))
-    })
-    .catch(error => {
-      if (error.response && error.response.status === 401) {
-        alert('Unauthorized. Logging out.');
-        logout(); 
-      } else {
-        alert(error.response ? error.response.data.error.message : error)
-      }
-    })
-  }
 
 
   return (
-    <div id="container">  
-      <h3>Todos</h3>
-      
-      {}
-      {user && ( 
+    <div id="container">
+      <h3>Todos:</h3>
         <form>
-          <input
-            placeholder='Add new task'
-            value={task}
-            onChange={e => setTask(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                addTask()
-              }
-            }}
-          />
+          <input placeholder='Add a new task' 
+          value={task}
+          onChange={e => setTask(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addTask();
+            }
+          }}
+        />
         </form>
-      )}
-
-      <ul>
+        <ul>
         {
         tasks.map(item => (
-        <Row item={item} key={item.id} deleteTask={deleteTask} isLoggedIn={!!user} /> 
+        <li key={item.id}>
+        {item.description}
+        <button className='delete-button' onClick={() =>
+        deleteTask(item.id)}>Delete</button>
+        </li>
         ))
         }
-      </ul>
+        </ul>
     </div>
-  )   
+
+  )
 }
+
+
 export default App

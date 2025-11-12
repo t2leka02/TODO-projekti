@@ -1,29 +1,42 @@
 
-
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { UserProvider } from './context/useUser.jsx'; 
-import ProtectedRoute from './components/ProtectedRoute.jsx'; 
-import App from './screens/App.jsx'
-import Login from './components/Login.jsx'; 
-import Register from './components/Register.jsx'; 
-import NotFound from './screens/NotFound.jsx'; 
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import './index.css'
+import App from './screens/App.jsx'
+import Authentication, { AuthenticationMode } from './screens/Authentication'
+import ProtectedRoute from './components/ProtectedRoute'
+import UserProvider from './context/UserProvider'
+import { RouterProvider } from 'react-router-dom'
+import { createBrowserRouter } from "react-router-dom";
+import NotFound from "./screens/NotFound";
 
+const router = createBrowserRouter([
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <UserProvider> 
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<ProtectedRoute> <App /> </ProtectedRoute>} />
-          
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<NotFound />} /> 
-        </Routes>
-      </BrowserRouter>
-    </UserProvider>
-  </React.StrictMode>,
+ {
+ errorElement: <NotFound />
+ },
+ {
+ path: "/signin",
+ element: <Authentication authenticationMode={AuthenticationMode.SignIn} />
+ },
+ {
+ path: "/signup",
+ element: <Authentication authenticationMode={AuthenticationMode.SignUp} />
+ },
+ {
+ element: <ProtectedRoute />,
+ children: [
+ {
+ path: "/",
+ element: <App />,
+ }
+ ]
+ }
+])
+createRoot(document.getElementById('root')).render(
+ <StrictMode>
+ <UserProvider>
+ <RouterProvider router={router} />
+ </UserProvider>
+ </StrictMode>,
 )

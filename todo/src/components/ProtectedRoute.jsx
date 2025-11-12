@@ -1,15 +1,8 @@
+import { useUser } from '../context/useUser'
+import { Outlet,Navigate } from 'react-router-dom'
 
-import { Navigate } from 'react-router-dom';
-import { useUser } from '../context/useUser';
-
-export default function ProtectedRoute({ children }) {
-  const { user } = useUser();
-
-  // If user is null (not logged in), redirect to the login page
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // If user is logged in, render the child component (the App/task list)
-  return children;
+export default function ProtectedRoute() {
+ const { user } = useUser()
+ if (!user || !user.token) return <Navigate to ="/signin" replace />
+ return (<Outlet />)
 }

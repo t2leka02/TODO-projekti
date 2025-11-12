@@ -1,4 +1,3 @@
-// src/components/Row.jsx (REVISED)
 
 export default function Row({ item, deleteTask, isLoggedIn }) { 
 return (
